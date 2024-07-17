@@ -1,0 +1,10 @@
+#python stuff
+venv/
+__pycache__/
+
+#ide stuff
+.env
+.vscode
+
+#db staff
+db.sqlite3
