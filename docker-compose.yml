@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  web:
+    image: dj
+    container_name: meteoapp
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/Meteoapp
+    ports:
+      - "8000:8000"
+    networks:
+      - meteo_network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-1
+    volumes:
+      - ./nginx.conf:/nginx/nginx.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    networks:
+      - meteo_network
+
+networks:
+  meteo_network:
+    driver: bridge
+
+
+   
