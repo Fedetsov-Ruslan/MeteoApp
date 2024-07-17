@@ -18,21 +18,37 @@ def index(request):
     form = CityForm()
     url = 'https://api.openweathermap.org/data/2.5/weather?q={}&units=metric&appid='+WEATHER_KEY
     cities = City.objects.all().order_by('-id')
+    print(cities[0])
+    try:    
+        response = requests.get(url.format(cities[0].name), params={'lang': 'ru'}).json()
+        city_info = {
+            'city': cities[0].name,
+            'temp': response['main']['temp'],
+            'wind': response['wind']['speed'],
+            'weather': response['weather'][0]['description'],
+            'icon': response['weather'][0]['icon'],
+        }
+
+
+        context = {
+            'info': city_info,
+            'form': form
+        }
+        return render(request, 'weather/index.html', context)
+
+    except:
         
-    response = requests.get(url.format(cities[0].name), params={'lang': 'ru'}).json()
-    city_info = {
-        'city': cities[0].name,
-        'temp': response['main']['temp'],
-        'wind': response['wind']['speed'],
-        'weather': response['weather'][0]['description'],
-        'icon': response['weather'][0]['icon'],
-    }
-    
-    
-    context = {
-        'info': city_info,
-        'form': form
-    }
-    return render(request, 'weather/index.html', context)
+        city_info = {
+            'city': 'Извините, такого города нет',
+            'temp': '-',
+            'wind': '-',
+            'weather': '-',
+            'icon': '-',
+        }
+        context = {
+            'info': city_info,
+            'form': form
+        }
+        return render(request, 'weather/index.html', context)
 
 
