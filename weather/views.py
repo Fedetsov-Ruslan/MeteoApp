@@ -26,44 +26,70 @@ def index(request):
         form = CityForm(request.POST)
         form.save()        
     
-    form = CityForm()
-    url = 'https://api.openweathermap.org/data/2.5/weather?q={}&units=metric&appid='+WEATHER_KEY
-    cities = City.objects.all().order_by('-id')
-    
-    try:    
-        response = requests.get(url.format(cities[0].name), params={'lang': 'ru'}).json()
+        form = CityForm()
+        url = 'https://api.openweathermap.org/data/2.5/weather?q={}&units=metric&appid='+WEATHER_KEY
+        cities = City.objects.all().order_by('-id')
+
+        try:    
+            response = requests.get(url.format(cities[0].name), params={'lang': 'ru'}).json()
+            city_info = {
+                'city': cities[0].name.capitalize(),
+                'temp': response['main']['temp'],
+                'wind': response['wind']['speed'],
+                'weather': response['weather'][0]['description'],
+                'icon': response['weather'][0]['icon'],
+            }
+            count =user_query(ip, cities[0].name.lower())
+
+            context = {
+                'info': city_info,
+                'form': form, 
+                'count': count
+            }
+
+
+            return render(request, 'weather/index.html', context)
+
+        except:
+
+            city_info = {
+                'city': 'Извините, такого города нет',
+                'temp': '-',
+                'wind': '-',
+                'weather': '-',
+                'icon': '-',
+            }
+            context = {
+                'info': city_info,
+                'form': form
+            }
+            return render(request, 'weather/index.html', context)
+    else:
+        form = CityForm()
+        url = 'https://api.openweathermap.org/data/2.5/weather?q={}&units=metric&appid='+WEATHER_KEY
+        ip = get_client_ip(request)        
+        last_city =  UserQuery.objects.filter(user_ip=ip).last().city_name
+        count =  UserQuery.objects.filter(user_ip=ip).last().count
+        response = requests.get(url.format(last_city), params={'lang': 'ru'}).json()
         city_info = {
-            'city': cities[0].name.capitalize(),
+            'city': last_city.capitalize(),
             'temp': response['main']['temp'],
             'wind': response['wind']['speed'],
             'weather': response['weather'][0]['description'],
             'icon': response['weather'][0]['icon'],
         }
-        count =user_query(ip, cities[0].name.lower())
-        
+
         context = {
-            'info': city_info,
-            'form': form, 
-            'count': count
-        }
-        
-        
+                'info': city_info,
+                'form': form, 
+                'count': count
+            }
+
+
         return render(request, 'weather/index.html', context)
 
-    except:
-        
-        city_info = {
-            'city': 'Извините, такого города нет',
-            'temp': '-',
-            'wind': '-',
-            'weather': '-',
-            'icon': '-',
-        }
-        context = {
-            'info': city_info,
-            'form': form
-        }
-        return render(request, 'weather/index.html', context)
+
+
 
 
 
